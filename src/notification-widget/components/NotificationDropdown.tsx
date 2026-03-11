@@ -1,83 +1,129 @@
-import { CheckCheck, X } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { X, FileText, Mail, CheckSquare, Trash2 } from 'lucide-react';
 import { useNotifications } from '../hooks/useNotifications';
-import { NotificationTabs } from './NotificationTabs';
+import { formatDistanceToNow } from 'date-fns';
+
+const getNotificationIcon = (type: string) => {
+  switch (type) {
+    case 'file':
+      return <FileText className="w-4 h-4" />;
+    case 'email':
+      return <Mail className="w-4 h-4" />;
+    case 'task':
+      return <CheckSquare className="w-4 h-4" />;
+    default:
+      return <FileText className="w-4 h-4" />;
+  }
+};
 
 export const NotificationDropdown = () => {
   const { 
-    notificationGroups, 
-    unreadCount, 
+    notifications, 
     setIsOpen, 
-    markAllAsRead 
+    markAsRead, 
+    markAllAsRead, 
+    deleteNotification,
+    unreadCount 
   } = useNotifications();
-  
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handlePointerDown = (event: PointerEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('pointerdown', handlePointerDown);
-    return () => document.removeEventListener('pointerdown', handlePointerDown);
-  }, [setIsOpen]);
-
-  const totalNotifications = notificationGroups.reduce((sum, group) => sum + group.count, 0);
 
   return (
-    <div
-      ref={dropdownRef}
-      className="absolute right-0 top-12 w-96 bg-surface border border-border rounded-xl shadow-lg z-50 max-h-[600px] flex flex-col"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <div>
-          <h3 className="font-semibold text-text">Notifications</h3>
-          <p className="text-sm text-textSecondary">
-            {totalNotifications} total, {unreadCount} unread
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <button
-              data-name="mark-all-read-button"
-              data-description="Mark all notifications as read"
-              onClick={markAllAsRead}
-              className="p-1.5 text-textSecondary hover:text-primary transition-colors rounded-lg hover:bg-accent"
-              title="Mark all as read"
-            >
-              <CheckCheck className="w-4 h-4" />
-            </button>
-          )}
+    <div className="absolute right-0 top-full mt-2 w-80 bg-surface border border-border rounded-lg shadow-lg z-50">
+      <div className="p-4 border-b border-border">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-text">Notifications</h3>
           <button
             data-name="close-notifications-button"
-            data-description="Close the notifications dropdown"
+            data-description="Close notification dropdown"
             onClick={() => setIsOpen(false)}
-            className="p-1.5 text-textSecondary hover:text-text transition-colors rounded-lg hover:bg-accent"
+            className="text-textSecondary hover:text-text transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-hidden">
-        {totalNotifications === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 px-4">
-            <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
-              <CheckCheck className="w-8 h-8 text-primary" />
-            </div>
-            <h4 className="font-medium text-text mb-2">All caught up!</h4>
-            <p className="text-sm text-textSecondary text-center">
-              No new notifications at the moment.
-            </p>
-          </div>
-        ) : (
-          <NotificationTabs groups={notificationGroups} />
+        {unreadCount > 0 && (
+          <button
+            data-name="mark-all-read-button"
+            data-description="Mark all notifications as read"
+            onClick={markAllAsRead}
+            className="text-sm text-primary hover:text-primary/80 transition-colors mt-2"
+          >
+            Mark all as read
+          </button>
         )}
       </div>
+
+      <div className="max-h-96 overflow-y-auto">
+        {notifications.length === 0 ? (
+          <div className="p-4 text-center text-textSecondary">
+            No notifications
+          </div>
+        ) : (
+          notifications.map((notification) => (
+            <div
+              key={notification.id}
+              className={`p-4 border-b border-border hover:bg-surface/50 transition-colors ${
+                !notification.isRead ? 'bg-primary/5' : ''
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start space-x-3 flex-1">
+                  <div className={`p-2 rounded-full ${
+                    notification.type === 'file' ? 'bg-blue-100 text-blue-600' :
+                    notification.type === 'email' ? 'bg-green-100 text-green-600' :
+                    'bg-orange-100 text-orange-600'
+                  }`}>
+                    {getNotificationIcon(notification.type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm ${!notification.isRead ? 'font-semibold text-text' : 'text-textSecondary'}`}>
+                      {notification.title}
+                    </p>
+                    <p className="text-xs text-textSecondary mt-1">
+                      {notification.message}
+                    </p>
+                    <p className="text-xs text-textSecondary mt-1">
+                      {formatDistanceToNow(notification.timestamp, { addSuffix: true })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-1 ml-2">
+                  {!notification.isRead && (
+                    <button
+                      data-name="mark-notification-read-button"
+                      data-description="Mark this notification as read"
+                      onClick={() => markAsRead(notification.id)}
+                      className="p-1 text-primary hover:text-primary/80 transition-colors"
+                      title="Mark as read"
+                    >
+                      <CheckSquare className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    data-name="delete-notification-button"
+                    data-description="Delete this notification"
+                    onClick={() => deleteNotification(notification.id)}
+                    className="p-1 text-error hover:text-error/80 transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {notifications.length > 0 && (
+        <div className="p-4 border-t border-border">
+          <button
+            data-name="view-all-notifications-button"
+            data-description="View all notifications in dedicated page"
+            className="w-full text-center text-sm text-primary hover:text-primary/80 transition-colors"
+          >
+            View all notifications
+          </button>
+        </div>
+      )}
     </div>
   );
 };
