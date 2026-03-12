@@ -1,12 +1,44 @@
 import { Bell } from 'lucide-react';
-import { useNotifications } from '../hooks/useNotifications';
+import { useEffect, useRef } from 'react';
+import { NotificationsState } from '../hooks/useNotifications';
 import { NotificationDropdown } from './NotificationDropdown';
 
-export const NotificationBell = () => {
-  const { unreadCount, isOpen, setIsOpen } = useNotifications();
+type NotificationBellProps = Pick<
+  NotificationsState,
+  'unreadCount' | 'isOpen' | 'setIsOpen' | 'notifications' | 'markAsRead' | 'markAllAsRead' | 'deleteNotification'
+>;
+
+export const NotificationBell = (props: NotificationBellProps) => {
+  const {
+    unreadCount,
+    isOpen,
+    setIsOpen,
+    notifications,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification
+  } = props;
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (target && containerRef.current && !containerRef.current.contains(target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, setIsOpen]);
 
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <button
         data-name="notification-bell-button"
         data-description="Toggle notification dropdown to view all notifications"
@@ -21,7 +53,16 @@ export const NotificationBell = () => {
         )}
       </button>
 
-      {isOpen && <NotificationDropdown />}
+      {isOpen && (
+        <NotificationDropdown
+          notifications={notifications}
+          setIsOpen={setIsOpen}
+          markAsRead={markAsRead}
+          markAllAsRead={markAllAsRead}
+          deleteNotification={deleteNotification}
+          unreadCount={unreadCount}
+        />
+      )}
     </div>
   );
 };

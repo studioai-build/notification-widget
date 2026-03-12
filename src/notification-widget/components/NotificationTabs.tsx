@@ -6,9 +6,11 @@ import { NOTIFICATION_TYPES } from '../constants/notifications';
 
 interface NotificationTabsProps {
   groups: NotificationGroup[];
+  markAsRead: (id: string) => void;
+  deleteNotification: (id: string) => void;
 }
 
-export const NotificationTabs = ({ groups }: NotificationTabsProps) => {
+export const NotificationTabs = ({ groups, markAsRead, deleteNotification }: NotificationTabsProps) => {
   const [activeTab, setActiveTab] = useState<'all' | 'file' | 'email' | 'task'>('all');
 
   const getIcon = (type: string) => {
@@ -89,6 +91,8 @@ export const NotificationTabs = ({ groups }: NotificationTabsProps) => {
               <NotificationItem
                 key={notification.id}
                 notification={notification}
+                markAsRead={markAsRead}
+                deleteNotification={deleteNotification}
               />
             ))}
           </div>

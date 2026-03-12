@@ -1,9 +1,9 @@
 import { groupBy } from 'lodash';
-import { createContext, ReactNode, useContext, useState } from 'react';
+import { useState } from 'react';
 import { MOCK_NOTIFICATIONS } from '../constants/notifications';
 import { Notification, NotificationGroup } from '../types/notification';
 
-type NotificationsContextValue = {
+export type NotificationsState = {
   notifications: Notification[];
   notificationGroups: NotificationGroup[];
   unreadCount: number;
@@ -15,9 +15,7 @@ type NotificationsContextValue = {
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void;
 };
 
-const NotificationsContext = createContext<NotificationsContextValue | null>(null);
-
-const useNotificationsState = () => {
+export const useNotificationsState = (): NotificationsState => {
   const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -71,22 +69,4 @@ const useNotificationsState = () => {
     deleteNotification,
     addNotification
   };
-};
-
-export const NotificationsProvider = ({ children }: { children: ReactNode }) => {
-  const state = useNotificationsState();
-
-  return (
-    <NotificationsContext.Provider value={state}>
-      {children}
-    </NotificationsContext.Provider>
-  );
-};
-
-export const useNotifications = () => {
-  const ctx = useContext(NotificationsContext);
-  if (!ctx) {
-    throw new Error('useNotifications must be used within NotificationsProvider');
-  }
-  return ctx;
 };

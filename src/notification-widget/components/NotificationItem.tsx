@@ -1,16 +1,19 @@
 import { File, Mail, CheckSquare, Trash2, Clock } from 'lucide-react';
 import { Notification } from '../types/notification';
-import { useNotifications } from '../hooks/useNotifications';
 import { formatTimeAgo } from '../utils/dateUtils';
 import { NOTIFICATION_TYPES } from '../constants/notifications';
 
 interface NotificationItemProps {
   notification: Notification;
+  markAsRead: (id: string) => void;
+  deleteNotification: (id: string) => void;
 }
 
-export const NotificationItem = ({ notification }: NotificationItemProps) => {
-  const { markAsRead, deleteNotification } = useNotifications();
-
+export const NotificationItem = ({
+  notification,
+  markAsRead,
+  deleteNotification
+}: NotificationItemProps) => {
   const getIcon = () => {
     switch (notification.type) {
       case 'file': return <File className="w-5 h-5" />;

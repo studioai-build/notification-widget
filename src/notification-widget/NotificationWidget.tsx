@@ -1,10 +1,10 @@
 import { NotificationBell } from "./components/NotificationBell";
-import { NotificationsProvider } from "./hooks/useNotifications";
+import { useNotificationsState } from "./hooks/useNotifications";
 
 export function NotificationWidget() {
+  const notificationsState = useNotificationsState();
+
   return (
-    <NotificationsProvider>
-      <NotificationBell />
-    </NotificationsProvider>
+    <NotificationBell {...notificationsState} />
   );
 }

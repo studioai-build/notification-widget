@@ -1,6 +1,6 @@
 import { X, FileText, Mail, CheckSquare, Trash2 } from 'lucide-react';
-import { useNotifications } from '../hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
+import { Notification } from '../types/notification';
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
@@ -15,15 +15,23 @@ const getNotificationIcon = (type: string) => {
   }
 };
 
-export const NotificationDropdown = () => {
-  const { 
-    notifications, 
-    setIsOpen, 
-    markAsRead, 
-    markAllAsRead, 
-    deleteNotification,
-    unreadCount 
-  } = useNotifications();
+interface NotificationDropdownProps {
+  notifications: Notification[];
+  setIsOpen: (open: boolean) => void;
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
+  deleteNotification: (id: string) => void;
+  unreadCount: number;
+}
+
+export const NotificationDropdown = ({
+  notifications,
+  setIsOpen,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+  unreadCount
+}: NotificationDropdownProps) => {
 
   return (
     <div className="absolute right-0 top-full mt-2 w-80 bg-surface border border-border rounded-lg shadow-lg z-50">
